@@ -5,66 +5,64 @@ import chess.pgn
 import chess.engine #StockFish engine
 import pandas as pd
 
+pgn = sys.stdin
 engine = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish") #install with sudo apt-get install stockfish
 
-pgn = sys.stdin
-
-board_positions = []
+# num_games = 1 # the number of games for which to get pgn data from the file - just used for testing purposes
+count = 0 #count the number of games that have been parsed
 scores = []
-num_games = 2 # the number of games for which to get pgn data from the file - just used for testing purposes
-count = 0
+board_positions = []
+piece_list = ('p','n','b','r','q','k','P','N','B','R','Q','K')
+
 # while count < num_games:
-
-#there are about 5000 games in one month of data . . . 
 while chess.pgn.read_game(pgn):
-    game = chess.pgn.read_game(pgn)
-    board = game.board() #fresh game
-    while not game.is_end(): #iterate through every board position in the game
-        node = game.variations[0]
-        board = game.board()
-        game = node 
+    try:
+        game = chess.pgn.read_game(pgn)
+        board = game.board() #fresh game
+        while not game.is_end(): #iterate through every board position in the game
+            node = game.variations[0]
+            board = game.board()
+            game = node 
 
-        info = engine.analyse(board, chess.engine.Limit(time=0.100)) #get Stockfish score for every board position
+            feature_vector = [] #stores a length 768 representation of the current board position
+            # 12 elements for each square, corresponding to each unique piece (black and white)
+            # 1 if the square is occupied by a white piece, -1 if occupied by black piece, 0 otherwise
 
-        clean_board = [] #stores a length 64 representation of the current position of the board (rows flattened into single sequence)
-        for char in str(board):
-            if char.strip(): #ignore empty lines
-                if char == 'p':
-                    char = -10
-                elif char in ['n', 'b']:
-                    char = -30
-                elif char == 'r':
-                    char = -50
-                elif char == 'q':
-                    char = -90
-                elif char == 'k':
-                    char = -10000
-                elif char == 'P':
-                    char = 10
-                elif char in ['N', 'B']:
-                    char = 30
-                elif char == 'R':
-                    char = 50
-                elif char == 'Q':
-                    char = 90
-                elif char == 'K':
-                    char = 10000
-                elif char == '.':
-                    char = 0
+            for square in str(board):
+                if square.strip(): #ignore empty lines
+                    if square.islower():
+                        for piece in piece_list:
+                            if square == piece:
+                                feature_vector.append(-1) #use -1 for black pieces, denoted by lowercase
+                            else:
+                                feature_vector.append(0)
+                    elif square.isupper():
+                        for piece in piece_list:
+                            if square == piece:
+                                feature_vector.append(1) #use 1 for white pieces, denoted by uppercase
+                            else:
+                                feature_vector.append(0)
+                    else: # if the square is empty, append 12 0s (one for each piece)
+                        for i in range(12):
+                            feature_vector.append(0)
 
-                clean_board.append(char)
-        board_positions.append(clean_board)
-        scores.append(str(info["score"]))
+            board_positions.append(feature_vector)
 
-    count += 1
-    if count%100 == 0:
-        print(f"{count} games processed")
+            info = engine.analyse(board, chess.engine.Limit(time=0.100)) #get Stockfish score for current board position
+            scores.append(str(info["score"]))
+
+        count += 1
+        if count%100 == 0:
+            print(f"{count} games processed")
+    
+    except:
+        break
 
 features = pd.DataFrame(board_positions)
 response = pd.DataFrame(scores)
 data = pd.concat([features, response], axis=1)
 
-data.to_csv("one_month.csv", sep=',', header=False, index=False)
+data.to_csv("one_month768.csv", sep=',', header=False, index=False)
 print('done parsing & wrote to csv')
 
 exit()
