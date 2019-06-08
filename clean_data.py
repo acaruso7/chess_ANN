@@ -1,17 +1,25 @@
 #!/home/acaruso/anaconda3/bin/python
+import os
+import sys
 import pandas as pd
+from os import listdir
+from os.path import isfile, join
 
-def read_data():
+
+def concat_csv():
     """read and concatenate multiple CSV files generated from parser script"""
     df = pd.DataFrame({})
     X_col_idxs = range(768)
     dtypes = {idx: 'int8' for idx in X_col_idxs} #set dtypes beforehand to save memory
     dtypes[768] = 'str'
 
-    for year in ['2016','2017','2018']:
-        df = pd.concat([df, pd.read_csv(f'./data/clean/{year}_5k.csv', sep=',', header=None, dtype=dtypes, memory_map=True)], axis=0)
+    files = [f for f in listdir('./data/parsed') if isfile(join('./data/parsed', f))]
+
+    for csv in files:
+        df = pd.concat([df, pd.read_csv(f'./data/parsed/{csv}', sep=',', header=None, dtype=dtypes, memory_map=True)], axis=0)
     return df
     
+
 def clean_data(df):
     """clean response variable and drop duplicate rows"""
     # remove prepended # symbols
@@ -29,9 +37,9 @@ def clean_data(df):
 
 
 if __name__ == '__main__':
-    df = read_data()
+    df = concat_csv()
     clean_df = clean_data(df)
-    clean_df.to_csv('15k_games.csv', sep=',', header=False, index=False, mode='a', chunksize=100000)
+    clean_df.to_csv('./data/model_ready/data.csv', sep=',', header=False, index=False, mode='a', chunksize=100000)
 
 
 

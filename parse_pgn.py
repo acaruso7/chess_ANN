@@ -1,11 +1,15 @@
 #!/home/acaruso/anaconda3/bin/python
+import os
 import sys
 import chess
 import chess.pgn
 import chess.engine #StockFish engine
 import pandas as pd
 
-pgn = sys.stdin
+pgn = sys.stdin 
+path = os.readlink('/proc/self/fd/0')
+filename = path.split('/')[-1].split('.')[0] 
+num_games = int(sys.argv[1:][0]) #the number of games from the pgn file to parse into csv representation
 engine = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish") #install with sudo apt-get install stockfish
 
 count = 0 #count the number of games that have been parsed
@@ -66,12 +70,12 @@ while chess.pgn.read_game(pgn):
     if count%500 == 0:
         print(f"{count} games processed")
 
-    if count == 5000: # write to csv and break loop after 5000 games to avoid memory error
+    if count == num_games: # write to csv and break loop
         features = pd.DataFrame(board_positions)
         response = pd.DataFrame(scores)
         data = pd.concat([features, response], axis=1)
 
-        data.to_csv("2016_5k.csv", sep=',', header=False, index=False)
+        data.to_csv(f"./data/parsed/{filename}_{num_games}games.csv", sep=',', header=False, index=False, chunksize=100000)
         print('done parsing & wrote to csv')
         break
 
