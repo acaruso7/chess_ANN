@@ -4,7 +4,7 @@ Neural network to "score" board positions in chess, trained on [FICS](https://ww
 
 ## Project Directory Structure
 ```
-project
+chess_ANN
 │   README.md
 │   parse_pgn.py  
 │   clean_data.py   
