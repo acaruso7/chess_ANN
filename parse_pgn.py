@@ -5,6 +5,7 @@ import chess
 import chess.pgn
 import chess.engine #StockFish engine
 import pandas as pd
+import numpy as np
 
 pgn = sys.stdin 
 path = os.readlink('/proc/self/fd/0')
@@ -34,30 +35,30 @@ while chess.pgn.read_game(pgn):
             if square.islower() and move_num % 2 != 0: #whites move
                 for piece in piece_list:
                     if square == piece:
-                        feature_vector.append(-1) 
+                        feature_vector.append(np.int8(-1)) 
                     else:
-                        feature_vector.append(0)
+                        feature_vector.append(np.int8(0))
             elif square.islower() and move_num % 2 == 0: #blacks move
                 for piece in piece_list:
                     if square == piece:
-                        feature_vector.append(1) 
+                        feature_vector.append(np.int8(1))
                     else:
                         feature_vector.append(0)
             elif square.isupper() and move_num % 2 != 0: #whites move
                 for piece in piece_list:
                     if square == piece:
-                        feature_vector.append(1) 
+                        feature_vector.append(np.int8(1))
                     else:
                         feature_vector.append(0)
             elif square.isupper() and move_num % 2 == 0: #blacks move
                 for piece in piece_list:
                     if square == piece:
-                        feature_vector.append(-1) 
+                        feature_vector.append(np.int8(-1))
                     else:
-                        feature_vector.append(0)
+                        feature_vector.append(np.int8(0))
             else: # if the square is empty, append 12 0s (one for each piece)
                 for i in range(12):
-                    feature_vector.append(0)
+                    feature_vector.append(np.int8(0))
 
         board_positions.append(feature_vector)
 
