@@ -1,6 +1,8 @@
 # chess_ANN
 Neural network to "score" board positions in chess, trained on [FICS](https://www.ficsgames.org/download.html) games database 
-[PGN](https://en.wikipedia.org/wiki/Portable_Game_Notation) data, and [Stockfish](https://stockfishchess.org/) board scores.
+[PGN](https://en.wikipedia.org/wiki/Portable_Game_Notation) data, and [Stockfish](https://stockfishchess.org/) board scores. 
+
+This repo is just the code to obtain data, preprocess it, and train a Keras regressor model. In [this other repo](https://github.com/acaruso7/chess-tensorflow), the pre-trained model built here is combined with a front-end for actually playing against the algorithm.
 
 ## Project Directory Structure
 ```
